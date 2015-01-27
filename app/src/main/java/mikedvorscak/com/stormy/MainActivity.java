@@ -21,12 +21,20 @@ public class MainActivity extends ActionBarActivity {
 
     public static final String TAG = MainActivity.class.getSimpleName();
 
+    SimpleCallback updateViewWithWeather = new SimpleCallback() {
+        @Override
+        public void call() {
+            //TODO: Implement me please!
+            mCurrentWeather.getIcon();
+        }
+    };
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         double lat = 37.8267;
         double lon = -122.423;
         mCurrentWeather = new CurrentWeather(this, getFragmentManager(),  lat, lon);
-        mCurrentWeather.callWeatherService();
+        mCurrentWeather.whenWeatherIsReady(updateViewWithWeather);
     }
 }

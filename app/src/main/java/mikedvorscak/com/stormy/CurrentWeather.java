@@ -14,72 +14,48 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.TimeZone;
 
 /**
  * Created by mike on 1/25/15.
  */
 public class CurrentWeather {
-    private final FragmentManager mFragmentManager;
     private String mIcon;
     private long mTime;
     private double mTemperature;
     private double mHumidity;
     private double mPrecipChance;
+    private String mTimezone;
+
     private String mSummary;
-    private Call mCall;
-    private static final String API_KEY = "ffb886b97ade03498187e7197debddc6";
+    private WeatherService mWeatherService;
+    private static final HashMap<String, Integer> mIconMap;
+    static {
+        mIconMap = new HashMap<String, Integer>();
+        mIconMap.put("clear-day", R.drawable.clear_day);
+        mIconMap.put("clear-night", R.drawable.clear_night);
+        mIconMap.put("rain", R.drawable.rain);
+        mIconMap.put("snow", R.drawable.snow);
+        mIconMap.put("sleet", R.drawable.sleet);
+        mIconMap.put("wind", R.drawable.wind);
+        mIconMap.put("fog", R.drawable.fog);
+        mIconMap.put("cloudy", R.drawable.cloudy);
+        mIconMap.put("partly-cloudy-day", R.drawable.partly_cloudy);
+        mIconMap.put("partly-cloudy-night", R.drawable.cloudy_night);
+    }
 
     public static final String TAG = MainActivity.class.getSimpleName();
-    private Context mContext;
 
     public CurrentWeather(Context context, FragmentManager fragmentManager, double lat, double lon) {
-        String forecastUrl = "https://api.forecast.io/forecast/" + API_KEY + "/" + lat + "," + lon;
-
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(forecastUrl)
-                .build();
-        mCall = client.newCall(request);
-        mContext = context;
-        mFragmentManager = fragmentManager;
+        mWeatherService = new WeatherService(context, fragmentManager, lat, lon, this);
     }
 
-    public void callWeatherService(){
-        if(Utils.isNetworkAvailable(mContext)) {
-            mCall.enqueue(new Callback() {
-                @Override
-                public void onFailure(Request request, IOException e) {
-
-                }
-
-                @Override
-                public void onResponse(Response response) throws IOException {
-                    try {
-                        if (response.isSuccessful()) {
-                            String jsonData = response.body().string();
-                            getCurrentDetails(jsonData);
-                        } else {
-                            Utils.alertUserAboutError(mFragmentManager, mContext.getString(R.string.error_message));
-                        }
-                    } catch (JSONException e){
-                        Log.e(TAG, "Exception caught: ", e);
-                    }
-                    catch (Exception e) {
-                        Log.e(TAG, "Exception caught: ", e);
-                    }
-                }
-            });
-        } else {
-            Utils.alertUserAboutError(mFragmentManager, mContext.getString(R.string.network_unavailable_message));
-        }
-    }
-
-    private void getCurrentDetails(String jsonData) throws JSONException{
-        JSONObject forecast = new JSONObject(jsonData);
-        String timezone = forecast.getString("timezone");
-        JSONObject currently = forecast.getJSONObject("currently");
-
-        Log.v(TAG, "JSON timezone: " + timezone);
+    public void whenWeatherIsReady(SimpleCallback callback){
+        //Call the weatherservice and pass the callback, the weatherservice will call when done
+        mWeatherService.call(callback);
     }
 
     public String getIcon() {
@@ -90,8 +66,20 @@ public class CurrentWeather {
         mIcon = icon;
     }
 
+    public int getIconId(){
+        return mIconMap.get(mIcon);
+    }
+
     public long getTime() {
         return mTime;
+    }
+
+    public String getFormattedTime() {
+        SimpleDateFormat formatter = new SimpleDateFormat("h:mm a");
+        formatter.setTimeZone(TimeZone.getTimeZone(mTimezone));
+        Date dateTime = new Date(mTime * 1000);
+        String timeString = formatter.format(dateTime);
+        return timeString;
     }
 
     public void setTime(long time) {
@@ -128,5 +116,13 @@ public class CurrentWeather {
 
     public void setSummary(String summary) {
         mSummary = summary;
+    }
+
+    public String getTimezone() {
+        return mTimezone;
+    }
+
+    public void setTimezone(String timezone) {
+        mTimezone = timezone;
     }
 }
