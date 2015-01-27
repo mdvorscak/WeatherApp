@@ -3,6 +3,7 @@ package mikedvorscak.com.stormy;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.util.Log;
+import android.widget.ImageView;
 
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
@@ -86,8 +87,8 @@ public class CurrentWeather {
         mTime = time;
     }
 
-    public double getTemperature() {
-        return mTemperature;
+    public int getTemperature() {
+        return (int)Math.round(mTemperature);
     }
 
     public void setTemperature(double temperature) {
@@ -102,8 +103,9 @@ public class CurrentWeather {
         mHumidity = humidity;
     }
 
-    public double getPrecipChance() {
-        return mPrecipChance;
+    public int getPrecipChance() {
+        double precipPercent = mPrecipChance * 100;
+        return (int)Math.round(precipPercent);
     }
 
     public void setPrecipChance(double precipChance) {

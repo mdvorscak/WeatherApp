@@ -25,16 +25,19 @@ public class WeatherService {
     private Call mCall;
     private Context mContext;
     private CurrentWeather mCurrentWeather;
+//    private String mForecastURL;
+    private OkHttpClient mClient;
+    private Request mRequest;
     private static final String API_KEY = "ffb886b97ade03498187e7197debddc6";
 
     public WeatherService(Context context, FragmentManager fragmentManager, double lat, double lon, CurrentWeather currentWeather){
-        String forecastUrl = "https://api.forecast.io/forecast/" + API_KEY + "/" + lat + "," + lon;
+        String forecastURL = "https://api.forecast.io/forecast/" + API_KEY + "/" + lat + "," + lon;
 
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(forecastUrl)
+        mClient = new OkHttpClient();
+        mRequest = new Request.Builder()
+                .url(forecastURL)
                 .build();
-        mCall = client.newCall(request);
+
         mContext = context;
         mFragmentManager = fragmentManager;
         mCurrentWeather = currentWeather;
@@ -42,6 +45,8 @@ public class WeatherService {
 
     public void call(final SimpleCallback simpleCallback){
         if(Utils.isNetworkAvailable(mContext)) {
+
+            mCall = mClient.newCall(mRequest);
             mCall.enqueue(new Callback() {
                 @Override
                 public void onFailure(Request request, IOException e) {
